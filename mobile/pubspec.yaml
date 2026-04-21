@@ -23,8 +23,8 @@ dependencies:
 
   # 定位与地图
   geolocator: ^11.0.0
-  amap_flutter_map: ^3.1.0
-  amap_flutter_location: ^3.2.0
+  amap_flutter_map: ^3.0.0
+  amap_flutter_location: ^3.0.0
 
   # 本地存储
   shared_preferences: ^2.2.2
