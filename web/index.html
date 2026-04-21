@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>生态研究追踪 - 路亚出勤</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1a73e8;
+      --bg: #f5f5f5;
+      --white: #ffffff;
+      --text: #333;
+      --muted: #999;
+      --success: #4caf50;
+      --border: #e0e0e0;
+      --radius: 16rpx;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
+
+    /* Tab Bar */
+    .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--white); border-top: 1px solid var(--border); display: flex; z-index: 100; }
+    .tab-item { flex: 1; text-align: center; padding: 10px 0; cursor: pointer; font-size: 12px; color: var(--muted); transition: color 0.2s; }
+    .tab-item.active { color: var(--primary); }
+    .tab-item .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+
+    /* Page */
+    .page { display: none; padding: 16px; min-height: calc(100vh - 60px); }
+    .page.active { display: block; }
+
+    /* Card */
+    .card { background: var(--white); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+
+    /* Header */
+    .app-header { text-align: center; padding: 24px 16px 8px; background: var(--white); margin-bottom: 8px; }
+    .app-header h1 { font-size: 20px; font-weight: bold; color: var(--primary); }
+    .app-header p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* Buttons */
+    .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; text-align: center; transition: opacity 0.2s; }
+    .btn:active { opacity: 0.8; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-default { background: #f0f0f0; color: var(--text); }
+    .btn-success { background: var(--success); color: white; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Location */
+    .location-box { background: #e8f0ff; border-radius: 8px; padding: 12px; margin: 8px 0; min-height: 44px; font-size: 13px; }
+    .location-box .coord { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* Weather Grid */
+    .weather-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .weather-item { background: #e8f5e9; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #2e7d32; }
+
+    /* Tide */
+    .tide-row { display: flex; gap: 12px; font-size: 13px; margin-bottom: 6px; }
+    .tide-label { color: var(--muted); }
+
+    /* Form */
+    .form-group { margin-bottom: 12px; }
+    .form-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; display: block; }
+    .form-input { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 14px; outline: none; }
+    .form-input:focus { border-color: var(--primary); }
+
+    /* Photo */
+    .photo-area { display: flex; gap: 12px; align-items: center; margin: 12px 0; }
+    .photo-preview { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); }
+    .photo-placeholder { width: 80px; height: 80px; border-radius: 8px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; cursor: pointer; border: 1px dashed var(--border); }
+
+    /* Catch Item */
+    .catch-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .catch-item:last-child { border-bottom: none; }
+
+    /* Result */
+    .result-box { background: #e8f5e9; border-radius: 10px; padding: 16px; text-align: center; margin-top: 12px; }
+    .result-box .success-msg { color: var(--success); font-weight: 600; font-size: 15px; }
+    .result-box .trip-id { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* History */
+    .trip-card { background: var(--white); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .trip-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .trip-address { font-size: 13px; color: var(--text); margin-bottom: 6px; }
+    .trip-meta { display: flex; gap: 12px; font-size: 12px; }
+    .trip-tag { background: #e8f5e9; color: #2e7d32; border-radius: 4px; padding: 2px 8px; }
+
+    /* Waypoint */
+    .waypoint-item { background: var(--white); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .waypoint-name { font-size: 14px; font-weight: 600; }
+    .waypoint-coord { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .waypoint-delete { background: #ff4444; color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 20px; color: var(--muted); }
+    .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Empty */
+    .empty { text-align: center; padding: 40px 0; color: var(--muted); font-size: 13px; }
+
+    /* Toast */
+    #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 9999; display: none; white-space: nowrap; }
+    #toast.show { display: block; animation: fadeIn 0.2s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+    /* Nav back */
+    .nav-back { display: flex; align-items: center; padding: 12px 0; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .nav-back span { margin-left: 6px; }
+  </style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- Header -->
+<div class="app-header">
+  <h1>🎣 路亚出勤记录</h1>
+  <p>生态研究追踪 · 实时天气 · 鱼货拍照</p>
+</div>
+
+<!-- Page: Index (出勤) -->
+<div id="page-index" class="page active">
+  <div class="card">
+    <div class="card-title">📍 当前位置</div>
+    <div id="location-box" class="location-box">未获取位置</div>
+    <button class="btn btn-primary" id="btn-location" onclick="getLocation()">📍 获取位置</button>
+    <div id="coord-display" class="coord" style="font-size:11px;color:#999;margin-top:6px;display:none;"></div>
+  </div>
+
+  <div class="card" id="weather-card" style="display:none;">
+    <div class="card-title">🌤️ 实时天气</div>
+    <div class="weather-grid" id="weather-grid"></div>
+  </div>
+
+  <div class="card" id="tide-card" style="display:none;">
+    <div class="card-title">🌊 今日潮讯</div>
+    <div class="tide-row"><span class="tide-label">高潮：</span><span id="tide-high">--</span></div>
+    <div class="tide-row"><span class="tide-label">低潮：</span><span id="tide-low">--</span></div>
+    <div class="tide-row"><span class="tide-label">当前潮位：</span><span id="tide-current">--</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📝 备注</div>
+    <input class="form-input" id="remark-input" placeholder="今天鱼情如何？" />
+  </div>
+
+  <div id="result-box" class="result-box" style="display:none;">
+    <div class="success-msg">✅ 出勤记录成功！</div>
+    <div class="trip-id" id="trip-id-display"></div>
+  </div>
+
+  <button class="btn btn-success" id="btn-record" onclick="recordTrip()" disabled>🎣 一键出勤</button>
+
+  <div style="margin-top:12px;" id="btn-go-catch" style="display:none;">
+    <button class="btn btn-default" onclick="showCatches()">📷 去记录鱼货</button>
+  </div>
+</div>
+
+<!-- Page: History (历史) -->
+<div id="page-history" class="page">
+  <div id="history-list">
+    <div class="loading"><span class="spinner"></span>加载中...</div>
+  </div>
+</div>
+
+<!-- Page: Map/Waypoints (标点) -->
+<div id="page-map" class="page">
+  <div class="card">
+    <div class="card-title">📍 创建标点</div>
+    <div class="form-group">
+      <label class="form-label">标点名称</label>
+      <input class="form-input" id="wp-name" placeholder="例：黄金标点" />
+    </div>
+    <div id="wp-location-box" class="location-box">未获取位置</div>
+    <button class="btn btn-primary" onclick="getWpLocation()">📍 获取当前位置</button>
+    <button class="btn btn-success" style="margin-top:10px;" onclick="createWaypoint()">💾 保存标点</button>
+  </div>
+  <div id="waypoint-list"></div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-item active" onclick="switchTab('index')">
+    <div class="icon">🎣</div>
+    <div>出勤</div>
+  </div>
+  <div class="tab-item" onclick="switchTab('history')">
+    <div class="icon">📋</div>
+    <div>历史</div>
+  </div>
+  <div class="tab-item" onclick="switchTab('map')">
+    <div class="icon">📍</div>
+    <div>标点</div>
+  </div>
+</div>
+
+<script>
+const API = 'https://api.042138.xyz';
+let state = {
+  location: null,
+  address: null,
+  weather: null,
+  tide: null,
+  tripId: null,
+  wpLocation: null,
+  openid: null
+};
+
+// ---------- Tab Navigation ----------
+function switchTab(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'history') loadHistory();
+  if (name === 'map') loadWaypoints();
+}
+
+// ---------- Toast ----------
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ---------- Mock OpenID for browser testing ----------
+function getOpenid() {
+  if (!state.openid) {
+    state.openid = localStorage.getItem('et_openid') || 'browser_test_user_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('et_openid', state.openid);
+  }
+  return state.openid;
+}
+
+// ---------- Geolocation ----------
+function getLocation() {
+  if (!navigator.geolocation) { toast('浏览器不支持定位'); return; }
+  document.getElementById('btn-location').disabled = true;
+  document.getElementById('btn-location').innerHTML = '<span class="spinner"></span>定位中...';
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    state.location = { latitude: lat, longitude: lon };
+    document.getElementById('coord-display').style.display = 'block';
+    document.getElementById('coord-display').textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+    document.getElementById('location-box').innerHTML = '正在获取地址...';
+    document.getElementById('btn-location').disabled = false;
+    document.getElementById('btn-location').innerHTML = '📍 重新定位';
+    document.getElementById('btn-record').disabled = false;
+    fetchAddress(lat, lon);
+    fetchWeather(lat, lon);
+    fetchTide(lat, lon);
+  }, err => {
+    toast('定位失败: ' + err.message);
+    document.getElementById('btn-location').disabled = false;
+    document.getElementById('btn-location').innerHTML = '📍 获取位置';
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function getWpLocation() {
+  if (!navigator.geolocation) { toast('浏览器不支持定位'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    state.wpLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    document.getElementById('wp-location-box').innerHTML = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+  }, err => { toast('定位失败'); });
+}
+
+// ---------- API Calls ----------
+async function fetchAddress(lat, lon) {
+  try {
+    const res = await fetch(`https://restapi.amap.com/v3/geocode/regeo?key=d185bf2bbab4f569ee1ba0f66e406dd4&location=${lon},${lat}`);
+    const d = await res.json();
+    if (d.status === '1') {
+      state.address = d.regeocode.formatted_address;
+      document.getElementById('location-box').textContent = state.address;
+    } else {
+      document.getElementById('location-box').textContent = '（地址获取失败，使用坐标）';
+    }
+  } catch { document.getElementById('location-box').textContent = '（地址获取失败）'; }
+}
+
+async function fetchWeather(lat, lon) {
+  try {
+    const res = await fetch(`${API}/api/weather?lat=${lat}&lon=${lon}`);
+    state.weather = await res.json();
+    if (!state.weather.error) {
+      const w = state.weather;
+      document.getElementById('weather-card').style.display = 'block';
+      document.getElementById('weather-grid').innerHTML =
+        `<div class="weather-item">${w.weather || ''}</div>` +
+        `<div class="weather-item">${w.temperature}°C</div>` +
+        `<div class="weather-item">💨 ${w.wind || 'N/A'}</div>` +
+        `<div class="weather-item">💧 ${w.humidity}%</div>`;
+    }
+  } catch (e) { console.error(e); }
+}
+
+async function fetchTide(lat, lon) {
+  try {
+    const res = await fetch(`${API}/api/tide?lat=${lat}&lon=${lon}`);
+    state.tide = await res.json();
+    if (state.tide) {
+      document.getElementById('tide-card').style.display = 'block';
+      document.getElementById('tide-high').textContent = state.tide.high_tide;
+      document.getElementById('tide-low').textContent = state.tide.low_tide;
+      document.getElementById('tide-current').textContent = state.tide.current_level + (state.tide.unit || '');
+    }
+  } catch (e) { console.error(e); }
+}
+
+async function recordTrip() {
+  if (!state.location) { toast('请先获取位置'); return; }
+  const btn = document.getElementById('btn-record');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>提交中...';
+  try {
+    const res = await fetch(`${API}/api/trips`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        openid: getOpenid(),
+        latitude: state.location.latitude,
+        longitude: state.location.longitude,
+        remark: document.getElementById('remark-input').value
+      })
+    });
+    const data = await res.json();
+    if (data.id) {
+      state.tripId = data.id;
+      document.getElementById('result-box').style.display = 'block';
+      document.getElementById('trip-id-display').textContent = `记录ID: ${data.id}`;
+      document.getElementById('btn-go-catch').style.display = 'block';
+      toast('出勤记录成功！');
+    } else {
+      toast('记录失败: ' + (data.error || '未知错误'));
+    }
+  } catch (e) { toast('网络请求失败'); }
+  btn.disabled = false;
+  btn.innerHTML = '🎣 一键出勤';
+}
+
+async function loadHistory() {
+  const container = document.getElementById('history-list');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  try {
+    const res = await fetch(`${API}/api/trips?openid=${getOpenid()}`);
+    const trips = await res.json();
+    if (!trips.length) { container.innerHTML = '<div class="empty">暂无出勤记录<br>去记录你的第一次出勤吧！</div>'; return; }
+    container.innerHTML = trips.map(t => `
+      <div class="trip-card">
+        <div class="trip-header">
+          <span>${new Date(t.created_at).toLocaleString('zh-CN')}</span>
+          <span class="trip-tag">🐟 ${t.catch_count || 0} 鱼</span>
+        </div>
+        <div class="trip-address">${t.address || '（未知地址）'}</div>
+        ${t.weather ? `<div class="trip-meta"><span>🌤️ ${t.weather.weather || ''} ${t.weather.temperature || ''}°C</span></div>` : ''}
+        ${t.remark ? `<div style="font-size:12px;color:#666;margin-top:6px;">📝 ${t.remark}</div>` : ''}
+      </div>
+    `).join('');
+  } catch (e) { container.innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+async function loadWaypoints() {
+  const container = document.getElementById('waypoint-list');
+  try {
+    const res = await fetch(`${API}/api/waypoints?openid=${getOpenid()}`);
+    const wps = await res.json();
+    if (!wps.length) { container.innerHTML = '<div class="empty">暂无标点<br>去创建一个吧！</div>'; return; }
+    container.innerHTML = wps.map(w => `
+      <div class="waypoint-item">
+        <div>
+          <div class="waypoint-name">📍 ${w.name}</div>
+          <div class="waypoint-coord">${w.latitude.toFixed(6)}, ${w.longitude.toFixed(6)}</div>
+          ${w.remark ? `<div style="font-size:12px;color:#666;margin-top:2px;">${w.remark}</div>` : ''}
+        </div>
+        <button class="waypoint-delete" onclick="deleteWaypoint(${w.id})">删除</button>
+      </div>
+    `).join('');
+  } catch (e) { container.innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+async function createWaypoint() {
+  const name = document.getElementById('wp-name').value.trim();
+  if (!name) { toast('请输入标点名称'); return; }
+  if (!state.wpLocation) { toast('请先获取位置'); return; }
+  try {
+    const res = await fetch(`${API}/api/waypoints`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        openid: getOpenid(),
+        name,
+        latitude: state.wpLocation.lat,
+        longitude: state.wpLocation.lon
+      })
+    });
+    const data = await res.json();
+    if (data.id) {
+      toast('标点创建成功！');
+      document.getElementById('wp-name').value = '';
+      loadWaypoints();
+    } else {
+      toast('创建失败');
+    }
+  } catch (e) { toast('网络错误'); }
+}
+
+async function deleteWaypoint(id) {
+  if (!confirm('确定删除这个标点？')) return;
+  try {
+    const res = await fetch(`${API}/api/waypoints/${id}`, { method: 'DELETE' });
+    if (res.ok) { toast('已删除'); loadWaypoints(); }
+    else { toast('删除失败'); }
+  } catch { toast('网络错误'); }
+}
+
+// ---------- Fish Catch Page (modal-like sub-page) ----------
+function showCatches() {
+  if (!state.tripId) { toast('请先记录出勤'); return; }
+  window.location.hash = 'catches';
+  document.getElementById('page-index').innerHTML = `
+    <div class="nav-back" onclick="closeCatches()">← 返回</div>
+    <div class="card">
+      <div class="card-title">🐟 鱼种</div>
+      <div class="form-group">
+        <label class="form-label">选择鱼种</label>
+        <select class="form-input" id="fish-select" onchange="onFishChange(this.value)">
+          <option value="">-- 请选择 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">数量</label>
+        <input class="form-input" id="catch-count" type="number" value="1" min="1" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">长度 (cm)</label>
+        <input class="form-input" id="catch-length" type="number" placeholder="选填" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">重量 (kg)</label>
+        <input class="form-input" id="catch-weight" type="number" placeholder="选填" step="0.1" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">照片</label>
+        <div class="photo-area">
+          <div class="photo-placeholder" onclick="takePhoto()">📷 拍照</div>
+          <img id="photo-preview" class="photo-preview" style="display:none;" />
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="submitCatch()">💾 记录鱼货</button>
+    </div>
+    <div class="card">
+      <div class="card-title">本次鱼货</div>
+      <div id="catch-list"></div>
+    </div>
+  `;
+  document.getElementById('page-index').classList.add('active');
+  document.querySelectorAll('.tab-bar .tab-item').forEach(t => t.classList.remove('active'));
+  loadFishSpecies();
+  loadCatches();
+}
+
+function closeCatches() {
+  window.location.hash = '';
+  location.reload();
+}
+
+async function loadFishSpecies() {
+  try {
+    const res = await fetch(`${API}/api/fish-species`);
+    const species = await res.json();
+    const sel = document.getElementById('fish-select');
+    species.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.name;
+      opt.textContent = `${s.name_cn} (${s.name})`;
+      sel.appendChild(opt);
+    });
+  } catch {}
+}
+
+async function loadCatches() {
+  if (!state.tripId) return;
+  const container = document.getElementById('catch-list');
+  try {
+    const res = await fetch(`${API}/api/catches/${state.tripId}`);
+    const catches = await res.json();
+    if (!catches.length) { container.innerHTML = '<div class="empty">暂无鱼货记录</div>'; return; }
+    container.innerHTML = catches.map(c => `
+      <div class="catch-item">
+        <div>
+          <div style="font-weight:600;">${c.fish_species}</div>
+          <div style="font-size:12px;color:#999;">${c.count}尾${c.length ? ' · '+c.length+'cm' : ''}${c.weight ? ' · '+c.weight+'kg' : ''}</div>
+        </div>
+        ${c.photo_url ? `<img src="${API}${c.photo_url}" style="width:50px;height:50px;border-radius:8px;object-fit:cover;" />` : ''}
+      </div>
+    `).join('');
+  } catch {}
+}
+
+let catchPhotoUrl = '';
+async function takePhoto() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('photo', file);
+    try {
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.url) {
+        catchPhotoUrl = data.url;
+        const preview = document.getElementById('photo-preview');
+        preview.src = `${API}${data.url}`;
+        preview.style.display = 'block';
+        preview.previousElementSibling.style.display = 'none';
+        toast('上传成功');
+      }
+    } catch { toast('上传失败'); }
+  };
+  input.click();
+}
+
+async function submitCatch() {
+  const fish = document.getElementById('fish-select').value;
+  if (!fish) { toast('请选择鱼种'); return; }
+  const count = parseInt(document.getElementById('catch-count').value) || 1;
+  const length = document.getElementById('catch-length').value;
+  const weight = document.getElementById('catch-weight').value;
+  try {
+    const res = await fetch(`${API}/api/catches`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trip_id: state.tripId,
+        fish_species: fish,
+        count,
+        length: length || null,
+        weight: weight || null,
+        photo_url: catchPhotoUrl || null
+      })
+    });
+    const data = await res.json();
+    if (data.id) { toast('鱼货记录成功！'); catchPhotoUrl = ''; loadCatches(); }
+    else { toast('记录失败'); }
+  } catch { toast('网络错误'); }
+}
+
+// ---------- Init ----------
+getOpenid();
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<view class="container">
+  <view class="header">
+    <text class="title">记录鱼货</text>
+    <text class="subtitle">出勤 #{{tripId}}</text>
+  </view>
+
+  <!-- 照片区域 -->
+  <view class="section">
+    <view class="section-title">鱼货照片</view>
+    <view class="photo-area">
+      <image wx:if="{{photoUrl}}" src="{{apiBase}}{{photoUrl}}" mode="aspectFit" class="photo-preview" />
+      <view wx:else class="photo-placeholder">未上传照片</view>
+    </view>
+    <button bindtap="takePhoto" type="default" size="mini">拍照/选择照片</button>
+  </view>
+
+  <!-- 鱼种选择 -->
+  <view class="section">
+    <view class="section-title">鱼种</view>
+    <picker mode="selector" range="{{speciesList}}" range-key="name_cn" bindchange="onSpeciesChange">
+      <view class="picker-value">
+        {{selectedSpecies || '请选择鱼种'}}
+      </view>
+    </picker>
+  </view>
+
+  <!-- 数量 -->
+  <view class="section">
+    <view class="section-title">数量</view>
+    <input
+      class="input"
+      type="number"
+      placeholder="1"
+      value="{{count}}"
+      bindinput="onCountChange"
+    />
+  </view>
+
+  <!-- 长度 -->
+  <view class="section">
+    <view class="section-title">长度 (cm)</view>
+    <input
+      class="input"
+      type="digit"
+      placeholder="选填"
+      value="{{length}}"
+      bindinput="onLengthChange"
+    />
+  </view>
+
+  <!-- 重量 -->
+  <view class="section">
+    <view class="section-title">重量 (kg)</view>
+    <input
+      class="input"
+      type="digit"
+      placeholder="选填"
+      value="{{weight}}"
+      bindinput="onWeightChange"
+    />
+  </view>
+
+  <!-- 提交 -->
+  <button bindtap="submitCatch" type="primary" class="submit-btn">提交记录</button>
+
+  <!-- 已记录列表 -->
+  <view wx:if="{{catches.length > 0}}" class="section">
+    <view class="section-title">本次已记录</view>
+    <view wx:for="{{catches}}" wx:key="id" class="catch-item">
+      <text>{{item.fish_species}}</text>
+      <text>x{{item.count}}</text>
+    </view>
+  </view>
+</view>

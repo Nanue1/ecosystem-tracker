@@ -1,0 +1,42 @@
+<view class="container">
+  <view class="header">
+    <text class="title">标点管理</text>
+  </view>
+
+  <!-- 创建标点 -->
+  <view class="section">
+    <view class="section-title">创建新标点</view>
+    <input
+      class="input"
+      placeholder="标点名称"
+      value="{{name}}"
+      bindinput="onNameInput"
+    />
+    <view class="location-hint">
+      <text wx:if="{{latitude}}" class="success-text">
+        已获取位置：{{latitude}}, {{longitude}}
+      </text>
+      <text wx:else class="muted">尚未获取位置</text>
+    </view>
+    <view class="btn-row">
+      <button bindtap="getLocationAndSet" type="default" size="mini">获取位置</button>
+      <button bindtap="createWaypoint" type="primary" size="mini" loading="{{creating}}">创建标点</button>
+    </view>
+  </view>
+
+  <!-- 标点列表 -->
+  <view wx:if="{{empty}}" class="empty-box">
+    <text class="muted">暂无标点</text>
+  </view>
+
+  <view wx:for="{{waypoints}}" wx:key="id" class="waypoint-card">
+    <view class="waypoint-name">{{item.name}}</view>
+    <view class="waypoint-coord muted">{{item.latitude}}, {{item.longitude}}</view>
+    <view wx:if="{{item.remark}}" class="waypoint-remark muted">{{item.remark}}</view>
+    <view class="waypoint-date muted">{{item.created_at}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-box">
+    <text class="muted">加载中...</text>
+  </view>
+</view>

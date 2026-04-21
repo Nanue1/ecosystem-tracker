@@ -1,0 +1,37 @@
+<view class="container">
+  <view class="header">
+    <text class="title">出勤历史</text>
+  </view>
+
+  <view wx:if="{{empty}}" class="empty-box">
+    <text class="muted">暂无出勤记录</text>
+  </view>
+
+  <view wx:for="{{trips}}" wx:key="id" class="trip-card">
+    <view class="trip-header">
+      <text class="trip-date">{{item.created_at}}</text>
+      <text wx:if="{{item.catch_count > 0}}" class="catch-badge">鱼货 {{item.catch_count}}</text>
+    </view>
+
+    <view class="trip-location">
+      <text>{{item.address || '未知地点'}}</text>
+    </view>
+
+    <view wx:if="{{item.weather}}" class="trip-weather">
+      <text>{{item.weather.weather}}</text>
+      <text>{{item.weather.temperature}}°C</text>
+    </view>
+
+    <view wx:if="{{item.remark}}" class="trip-remark">
+      <text class="muted">{{item.remark}}</text>
+    </view>
+
+    <button data-trip-id="{{item.id}}" bindtap="viewCatch" type="primary" size="mini" class="trip-action">
+      查看/记录鱼货
+    </button>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-box">
+    <text class="muted">加载中...</text>
+  </view>
+</view>

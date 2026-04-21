@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/catches/catches",
+    "pages/history/history",
+    "pages/map/map"
+  ],
+  "window": {
+    "navigationBarTitleText": "生态研究追踪",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f5f5",
+    "enablePullDownRefresh": true
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1a73e8",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "出勤",
+        "iconPath": "assets/tab_index.png",
+        "selectedIconPath": "assets/tab_index_active.png"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "历史",
+        "iconPath": "assets/tab_history.png",
+        "selectedIconPath": "assets/tab_history_active.png"
+      },
+      {
+        "pagePath": "pages/map/map",
+        "text": "标点",
+        "iconPath": "assets/tab_map.png",
+        "selectedIconPath": "assets/tab_map_active.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}
