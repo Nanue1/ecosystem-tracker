@@ -1,0 +1,71 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/ios.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/ios.yml'
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    environment: ios-build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+          cache: true
+          cache-key: 'flutter-${{ runner.os }}-${{ hashFiles("mobile/pubspec.lock") }}'
+
+      - name: Cache Pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache/hosted/pub.dev/
+            ~/.pub-cache/gglab/
+          key: pub-${{ runner.os }}-${{ hashFiles('mobile/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Get Flutter dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Build iOS for simulator
+        working-directory: mobile
+        run: flutter build ios --simulator --no-codesign
+
+      - name: Build iOS for release
+        working-directory: mobile
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload iOS simulator build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-build
+          path: |
+            mobile/build/ios/iphonesimulator/
+            mobile/build/ios/iphonesimulator/Runner.app
+          retention-days: 7
+
+      - name: Upload iOS release build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release-build
+          path: |
+            mobile/build/ios/iphoneos/
+            mobile/build/ios/iphoneos/Runner.app
+          retention-days: 14

@@ -1,0 +1,41 @@
+name: Flutter Analyze & Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/flutter.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/flutter.yml'
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+
+      - name: Get dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Run flutter analyze
+        working-directory: mobile
+        run: flutter analyze
+
+      - name: Run flutter test
+        working-directory: mobile
+        run: flutter test
+        # 暂无单元测试，先跳过
+        continue-on-error: true

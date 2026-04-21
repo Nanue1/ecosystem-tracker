@@ -1,11 +1,12 @@
-# 生态研究追踪 - 路亚出勤记录小程序
+# 生态研究追踪 - 路亚出勤记录 App
 
 ## 1. 项目概述
 
 **项目名称**: 生态研究追踪 (Ecosystem Tracker)
-**类型**: 微信小程序 + 后端 API
+**类型**: 跨平台原生 App + 后端 API
 **核心功能**: 记录路亚出勤、标点、天气、潮汛、鱼货拍照上传、鱼种记录
-**技术栈**: 微信小程序 + Flask/SQLite + 高德地图 API
+**技术栈**: Flutter (Android + iOS) + Flask/SQLite + 高德地图 API
+**版本**: 从微信小程序改为 Flutter App（一套代码同时输出 Android + iOS）
 
 ---
 
@@ -13,8 +14,9 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      微信小程序前端                          │
-│  (位置获取 · 天气潮讯 · 拍照上传 · 记录鱼货)                  │
+│                    Flutter App 前端                         │
+│         (Android + iOS 同一套代码原生 App)                   │
+│  (GPS定位 · 高德地图 · 天气潮讯 · 拍照上传 · 记录鱼货)        │
 └──────────────────┬──────────────────────────────────────────┘
                    │ HTTPS
                    ▼
@@ -75,11 +77,14 @@
 
 ## 4. 技术方案
 
-### 4.1 前端 - 微信小程序
-- **框架**: 原生 WXML/WXSS + JavaScript（初版快速落地）
-- **地图**: 高德地图小程序 SDK（`amap-wx.js`）
-- **UI 组件**: Vant Weapp（有赞出品的小程序 UI 库）
-- **图片上传**: 微信 `wx.chooseImage` + `wx.uploadFile`
+### 4.1 前端 - Flutter App
+- **框架**: Flutter 3.x + Dart（一套代码输出 Android + iOS）
+- **地图**: 高德地图 Flutter SDK（`amap_flutter_map`）
+- **定位**: `geolocator` + `amap_flutter_location`
+- **状态管理**: `provider`
+- **图片**: `image_picker`
+- **离线存储**: `shared_preferences` + `sqflite`
+- **微信登录**: `fluwx`（需要微信开放平台移动应用资质）
 
 ### 4.2 后端 - Flask API
 - **语言**: Python 3
@@ -156,7 +161,7 @@ ecosystem-tracker/
 ├── SPEC.md                          # 本规格文档
 ├── README.md                        # 项目说明
 │
-├── backend/                         # 后端服务
+├── backend/                         # 后端服务（Flask API）
 │   ├── app.py                       # Flask 主程序
 │   ├── models.py                    # 数据库模型
 │   ├── config.py                    # 配置文件
@@ -165,19 +170,23 @@ ecosystem-tracker/
 │   ├── fish_species_seed.py         # 鱼种库初始数据
 │   └── uploads/                     # 图片存储目录
 │
-├── frontend/                        # 微信小程序前端
-│   ├── project.config.json          # 小程序项目配置
-│   ├── app.js                       # 小程序入口
-│   ├── app.json                     # 小程序配置
-│   ├── app.wxss                     # 全局样式
-│   ├── pages/
-│   │   ├── index/                   # 首页 - 出勤记录
-│   │   ├── map/                     # 地图页 - 标点管理
-│   │   ├── catches/                # 鱼货记录页
-│   │   ├── history/                # 历史记录页
-│   │   └── fish species/            # 鱼种选择页
-│   ├── components/                  # 公共组件
-│   └── utils/                      # 工具函数
+├── mobile/                          # Flutter App（一套代码 Android + iOS）
+│   ├── lib/
+│   │   ├── main.dart                # App 入口
+│   │   ├── models/
+│   │   │   └── models.dart          # 数据模型（Trip/Catch/Waypoint/FishSpecies/Weather/Tide）
+│   │   ├── services/
+│   │   │   ├── api_service.dart     # 后端 API 调用
+│   │   │   ├── location_service.dart # GPS 定位
+│   │   │   └── storage_service.dart  # 本地缓存
+│   │   └── screens/
+│   │       ├── home_screen.dart     # 首页 - 出勤列表
+│   │       ├── active_trip_screen.dart  # 进行中出勤（地图+天气+鱼货）
+│   │       ├── catch_entry_screen.dart   # 鱼货记录（拍照+选鱼种）
+│   │       └── trip_detail_screen.dart  # 历史出勤详情
+│   ├── android/                     # Android 配置（权限、高德 Key）
+│   ├── ios/                         # iOS 配置（权限）
+│   └── pubspec.yaml                 # Flutter 依赖
 │
 ├── .github/
 │   └── workflows/
@@ -198,11 +207,17 @@ ecosystem-tracker/
 - Nginx 反向代理到 `127.0.0.1:5000`
 - 子域名: `api.042138.xyz`（后续申请）
 
-### 6.2 小程序发布流程
-1. 本地开发调试（微信开发者工具）
-2. 提交代码到 Git
-3. GitHub Actions 自动构建 + 部署后端
-4. 手动上传小程序到微信公众平台（需要 AppID）
+### 6.2 Flutter App 发布流程
+
+**Android:**
+1. 本地开发调试（`flutter run`）
+2. 构建 APK（`flutter build apk --release`）
+3. 直接分发 APK 或上传到应用市场
+
+**iOS:**
+1. 本地开发调试（`flutter run` + Xcode 模拟器）
+2. Xcode 配置签名 + Bundle ID
+3. Archive + 上传到 App Store Connect
 
 ---
 
@@ -235,25 +250,23 @@ ecosystem-tracker/
 ## 8. 下一步行动
 
 ### 立即执行（今天）
-1. [ ] 确认微信小程序 AppID（如没有需申请）
-2. [ ] 申请高德地图 API Key（天气 + 地理编码）
-3. [ ] 创建 GitHub 仓库
-4. [ ] 搭建后端服务（Flask + SQLite）
-5. [ ] 初始化数据库和鱼种库
-
-### 待办
-- [ ] 开发小程序首页（获取位置 + 记录出勤）
-- [ ] 开发天气/潮讯获取功能
-- [ ] 开发鱼货拍照上传功能
-- [ ] 配置 GitHub Actions CI/CD
-- [ ] 配置 Nginx + 域名
+1. [x] 创建 Flutter 项目结构（mobile/ 目录）
+2. [x] 实现数据模型和服务层
+3. [x] 实现核心页面（首页、出勤页、鱼货记录页、历史详情页）
+4. [x] 生成 Android 权限配置
+5. [x] 生成 iOS 权限配置
+6. [ ] 在本地安装 Flutter SDK（https://docs.flutter.dev/get-started/install）
+7. [ ] 申请高德地图 API Key（Android + iOS 各一个）
+8. [ ] 配置 `lib/services/api_service.dart` 中的服务器地址
+9. [ ] 在本地构建 Android APK 测试
+10. [ ] 在 macOS + Xcode 构建 iOS App（需 Mac 电脑）
 
 ---
 
 ## 9. 已知约束与注意事项
 
-1. **微信小程序要求 HTTPS**：生产环境必须使用有效 SSL 证书，后端需部署在 HTTPS 下
-2. **高德地图 API 配额**：免费版有日调用上限，注意用量
-3. **潮汐 API**：中国潮汐数据由国家海洋信息中心提供，需申请或使用第三方数据源
-4. **用户 openid**：需通过微信服务器获取，不能在前端直接使用
-5. **图片存储**：初版用本地文件系统，生产环境建议用 OSS/COS
+1. **Flutter SDK**：需本地安装（服务器不编译 App，仅存放代码）
+2. **高德地图 API**：需要申请 Web API Key（Android + iOS 各一个）
+3. **微信登录**：需在微信开放平台申请移动应用资质（AppID）
+4. **iOS 构建**：必须在 macOS + Xcode 环境下进行
+5. **Android 调试**：可在任意系统进行，真机调试需要配置 USB 调试
