@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-upload:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,17 +24,20 @@ jobs:
           cd frontend
           npm install
 
-      - name: Write private key
+      - name: Setup SSH
         run: |
-          echo "${{ secrets.WX_PRIVATE_KEY }}" > /tmp/private.key
-          chmod 600 /tmp/private.key
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GH_ACTIONS_SSH_KEY }}" > ~/.ssh/github_actions_key
+          chmod 600 ~/.ssh/github_actions_key
+          ssh-keyscan -H 34.92.70.58 >> ~/.ssh/known_hosts 2>/dev/null
+          echo "Known hosts updated"
 
-      - name: Upload to WeChat
+      - name: Upload via SSH
+        env:
+          VERSION: ${{ github.run_number }}.${{ github.run_attempt }}
         run: |
           cd frontend
-          npx miniprogram-ci upload \
-            --appid ${{ secrets.WX_APPID }} \
-            --private-key-path /tmp/private.key \
-            --project-path . \
-            --upload-version 1.0.1 \
-            --upload-description "Auto deploy via GitHub Actions"
+          tar czf - . | ssh -i ~/.ssh/github_actions_key \
+            -o StrictHostKeyChecking=no \
+            manue1@34.92.70.58 \
+            "/home/manue1/hermes_project/projects/ecosystem-tracker/scripts/github-upload.sh $VERSION 'Auto deploy via GitHub Actions'"
