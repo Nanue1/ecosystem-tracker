@@ -24,14 +24,16 @@ jobs:
           cd frontend
           npm install
 
+      - name: Write private key
+        run: |
+          echo "${{ secrets.WX_PRIVATE_KEY }}" > /tmp/private.key
+          chmod 600 /tmp/private.key
+
       - name: Upload to WeChat
         run: |
           cd frontend
           npx miniprogram-ci upload \
             --appid ${{ secrets.WX_APPID }} \
-            --private-key-path ${{ secrets.WX_PRIVATE_KEY }} \
+            --private-key-path /tmp/private.key \
             --project ./project.config.json \
             --output-dir ./dist
-        env:
-          WX_APPID: ${{ secrets.WX_APPID }}
-          WX_PRIVATE_KEY: ${{ secrets.WX_PRIVATE_KEY }}
