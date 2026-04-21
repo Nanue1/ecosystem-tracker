@@ -205,6 +205,14 @@ class FishSpecies {
   }
 
   String get displayName => chineseName ?? name;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'chinese_name': chineseName,
+        'category': category,
+        'description': description,
+      };
 }
 
 /// 天气信息

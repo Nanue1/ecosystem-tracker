@@ -23,10 +23,7 @@ class LocationService {
 
     // 获取当前位置
     return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
-      ),
+      desiredAccuracy: LocationAccuracy.high,
     );
   }
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
+import '../services/location_service.dart';
 import 'active_trip_screen.dart';
 import 'trip_detail_screen.dart';
 
@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loading = true;
     try {
       final storage = context.read<StorageService>();
-      final position = await context.read<LocationService>().getCurrentPosition();
+      final position = await LocationService().getCurrentPosition();
 
       final trip = Trip(
         openid: api.openid!,

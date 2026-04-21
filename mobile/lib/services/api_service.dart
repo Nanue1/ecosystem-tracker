@@ -168,6 +168,7 @@ class ApiService {
 /// API 异常
 class ApiException implements Exception {
   final int statusCode;
+  final String body;
   final String message;
   ApiException(this.statusCode, this.body)
       : message = 'API Error $statusCode: $body';
