@@ -5,9 +5,7 @@ import '../models/models.dart';
 
 /// API 服务层 — 复用 Flask 后端
 class ApiService {
-  // TODO: 部署后替换为你的服务器地址
-  // 开发阶段使用本地地址，App 在手机上需要改成实际服务器 IP/域名
-  static const String _baseUrl = 'http://YOUR_SERVER_IP:5000/api';
+  static const String _baseUrl = 'http://34.92.70.58:5000/api';
 
   String? _openid;
 
