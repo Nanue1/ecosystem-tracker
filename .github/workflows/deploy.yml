@@ -1,18 +1,132 @@
-name: Deploy Mini Program
+name: Build & Deploy
 
 on:
   push:
     branches: [main]
     paths:
+      - 'mobile/**'
       - 'frontend/**'
   workflow_dispatch:
+    inputs:
+      skip_mobile:
+        description: 'Skip mobile build'
+        required: false
+        default: 'false'
+      skip_frontend:
+        description: 'Skip frontend deploy'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-upload:
+  # ===========================
+  # Flutter App — Android APK
+  # ===========================
+  mobile-build:
     runs-on: ubuntu-latest
+    if: github.event.inputs.skip_mobile != 'true'
+    outputs:
+      apk_path: mobile/build/app/outputs/flutter-apk/app-release.apk
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+          cache: true
+          cache-key: 'flutter-${{ runner.os }}-${{ hashFiles("mobile/pubspec.lock") }}'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Get dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Accept Android licenses
+        run: |
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          if [ ! -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
+            curl -sL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/cmdtools.zip
+            unzip -q /tmp/cmdtools.zip -d $ANDROID_HOME/cmdline-tools
+            mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          fi
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+
+      - name: Build release APK
+        working-directory: mobile
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-apk
+          path: mobile/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 3
+
+  # ===========================
+  # Deploy mobile APK to server
+  # ===========================
+  deploy-mobile:
+    needs: mobile-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-apk
+          path: /tmp/apk
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GH_ACTIONS_SSH_KEY }}" > ~/.ssh/github_actions_key
+          chmod 600 ~/.ssh/github_actions_key
+          ssh-keyscan -H ${{ vars.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Create server directory
+        run: |
+          ssh -i ~/.ssh/github_actions_key \
+            -o StrictHostKeyChecking=no \
+            ${{ vars.SERVER_USER }}@${{ vars.SERVER_HOST }} \
+            "mkdir -p /data/ecosystem-tracker/releases && echo 'Directory ready'"
+
+      - name: Upload APK to server
+        run: |
+          scp -i ~/.ssh/github_actions_key \
+            -o StrictHostKeyChecking=no \
+            /tmp/apk/app-release.apk \
+            ${{ vars.SERVER_USER }}@${{ vars.SERVER_HOST }}:/data/ecosystem-tracker/releases/
+
+      - name: Print result
+        run: |
+          VERSION="${{ github.run_number }}.${{ github.run_attempt }}"
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo ""
+          echo "✅ Flutter App deployed!"
+          echo "📦 File: /data/ecosystem-tracker/releases/app-release.apk"
+          echo "🔗 URL:  https://042138.xyz/ecosystem-tracker/releases/app-release.apk"
+          echo "📋 Run:  #$VERSION${TAG:+, tag: $TAG}"
+
+  # ===========================
+  # WeChat Mini Program frontend
+  # ===========================
+  frontend-deploy:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.skip_frontend != 'true'
+
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -29,15 +143,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.GH_ACTIONS_SSH_KEY }}" > ~/.ssh/github_actions_key
           chmod 600 ~/.ssh/github_actions_key
-          ssh-keyscan -H 34.92.70.58 >> ~/.ssh/known_hosts 2>/dev/null
-          echo "Known hosts updated"
+          ssh-keyscan -H ${{ vars.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Upload via SSH
         env:
-          VERSION: ${{ github.run_number }}.${{ github.run_attempt }}
+          VERSION: ${{ github.run_number }}.${{ github.run_run_attempt }}
         run: |
           cd frontend
           tar czf - . | ssh -i ~/.ssh/github_actions_key \
             -o StrictHostKeyChecking=no \
-            manue1@34.92.70.58 \
+            ${{ vars.SERVER_USER }}@${{ vars.SERVER_HOST }} \
             "/home/manue1/hermes_project/projects/ecosystem-tracker/scripts/github-upload.sh $VERSION 'Auto deploy via GitHub Actions'"
