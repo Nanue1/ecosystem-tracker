@@ -99,14 +99,14 @@ jobs:
           ssh -i ~/.ssh/github_actions_key \
             -o StrictHostKeyChecking=no \
             ${{ vars.SERVER_USER }}@${{ vars.SERVER_HOST }} \
-            "mkdir -p /data/ecosystem-tracker/releases && echo 'Directory ready'"
+            "mkdir -p /home/manue1/hermes_project/projects/ecosystem-tracker/releases"
 
       - name: Upload APK to server
         run: |
           scp -i ~/.ssh/github_actions_key \
             -o StrictHostKeyChecking=no \
             /tmp/apk/app-release.apk \
-            ${{ vars.SERVER_USER }}@${{ vars.SERVER_HOST }}:/data/ecosystem-tracker/releases/
+            ${{ vars.SERVER_USER }}@${{ vars.SERVER_HOST }}:/home/manue1/hermes_project/projects/ecosystem-tracker/releases/
 
       - name: Print result
         run: |
@@ -114,9 +114,9 @@ jobs:
           TAG="${GITHUB_REF#refs/tags/}"
           echo ""
           echo "✅ Flutter App deployed!"
-          echo "📦 File: /data/ecosystem-tracker/releases/app-release.apk"
-          echo "🔗 URL:  https://042138.xyz/ecosystem-tracker/releases/app-release.apk"
-          echo "📋 Run:  #$VERSION${TAG:+, tag: $TAG}"
+          echo "📦 File: /home/manue1/hermes_project/projects/ecosystem-tracker/releases/app-release.apk"
+          echo "🔗 Download: http://042138.xyz:5000/api/apk/download/app-release.apk"
+          echo "📋 Run: #$VERSION${TAG:+, tag: $TAG}"
 
   # ===========================
   # WeChat Mini Program frontend
@@ -147,7 +147,7 @@ jobs:
 
       - name: Upload via SSH
         env:
-          VERSION: ${{ github.run_number }}.${{ github.run_run_attempt }}
+          VERSION: ${{ github.run_number }}.${{ github.run_attempt }}
         run: |
           cd frontend
           tar czf - . | ssh -i ~/.ssh/github_actions_key \
