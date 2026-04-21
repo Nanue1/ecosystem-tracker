@@ -28,6 +28,9 @@ jobs:
         run: |
           echo "${{ secrets.WX_PRIVATE_KEY }}" > /tmp/private.key
           chmod 600 /tmp/private.key
+          echo "Key file size: $(wc -c < /tmp/private.key) bytes"
+          echo "Key starts with: $(head -1 /tmp/private.key)"
+          echo "Key ends with: $(tail -1 /tmp/private.key)"
 
       - name: Upload to WeChat
         run: |
@@ -35,6 +38,7 @@ jobs:
           npx miniprogram-ci upload \
             --appid ${{ secrets.WX_APPID }} \
             --private-key-path /tmp/private.key \
+            --private-key-type rsa \
             --project-path . \
             --upload-version 1.0.0 \
             --upload-description "Auto deploy via GitHub Actions"
