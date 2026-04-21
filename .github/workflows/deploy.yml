@@ -1,0 +1,37 @@
+name: Deploy Mini Program
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'frontend'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Upload to WeChat
+        run: |
+          cd frontend
+          npx miniprogram-ci upload \
+            --appid ${{ secrets.WX_APPID }} \
+            --private-key-path ${{ secrets.WX_PRIVATE_KEY }} \
+            --project ./project.config.json \
+            --output-dir ./dist
+        env:
+          WX_APPID: ${{ secrets.WX_APPID }}
+          WX_PRIVATE_KEY: ${{ secrets.WX_PRIVATE_KEY }}
