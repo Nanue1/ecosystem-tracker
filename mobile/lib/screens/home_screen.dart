@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
@@ -153,7 +154,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTripList(Color accent) {
     final dateFormat = DateFormat('MM/dd HH:mm');
-    final now = DateTime.now();
     final activeTrips = _trips.where((t) => t.endTime == null).toList();
     final pastTrips = _trips.where((t) => t.endTime != null).toList();
 
