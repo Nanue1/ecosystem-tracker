@@ -44,6 +44,8 @@ jobs:
         run: |
           cd mobile
           flutter create --platforms=ios .
+          # Remove stale Pods to force clean install (old cached Pods cause linking errors)
+          rm -rf ios/Pods ios/Podfile.lock ios/.symlinks
           cd ..
 
       - name: Get Flutter dependencies

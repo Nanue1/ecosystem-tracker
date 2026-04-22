@@ -48,8 +48,8 @@ jobs:
         run: |
           cd mobile
           flutter create --platforms=android .
-          # Update Kotlin Gradle plugin version to 1.9.0 (some dependencies require it)
-          sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.0"/' android/build.gradle
+          # Override Kotlin plugin version in settings.gradle (Flutter 3.22 uses pluginManagement DSL)
+          sed -i 's/id("org.jetbrains.kotlin.android") version "[^"]*"/id("org.jetbrains.kotlin.android") version "1.9.0"/' android/settings.gradle
           cd ..
 
       - name: Get Flutter dependencies
