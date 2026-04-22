@@ -11,7 +11,7 @@ on:
     paths:
       - 'mobile/**'
       - '.github/workflows/android.yml'
-  workflow_dispatch:
+  workflow_dispatch: ~
 
 jobs:
   android:
@@ -71,7 +71,6 @@ subprojects {
 }
 KOTLIN_BLOCK
           fi
-
           cd ..
 
       - name: Get Flutter dependencies
