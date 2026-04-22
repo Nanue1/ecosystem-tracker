@@ -48,6 +48,10 @@ jobs:
         run: |
           cd mobile
           flutter create --platforms=android .
+          # Force Kotlin 1.9.x (some dependencies require it)
+          if ! grep -q "kotlin.version" android/gradle.properties 2>/dev/null; then
+            echo "kotlin.version=1.9.0" >> android/gradle.properties
+          fi
           cd ..
 
       - name: Get Flutter dependencies

@@ -37,8 +37,8 @@ dependencies:
   intl: ^0.19.0
   permission_handler: ^11.3.0
 
-  # 微信登录（可选）
-  fluwx: ^4.3.7
+  # 微信登录（可选）— 需要手动集成 WeChat SDK
+  # fluwx: ^4.3.7
 
 dev_dependencies:
   flutter_test:
