@@ -48,39 +48,7 @@ jobs:
         run: |
           cd mobile
           flutter create --platforms=android .
-
-          # NOTE: flutter create RE-GENERATES android/settings.gradle, so we patch AFTER.
-          # Override Kotlin plugin version from ~1.7.10 to 1.9.22.
           sed -i 's/id("org.jetbrains.kotlin.android") version "[^"]*"/id("org.jetbrains.kotlin.android") version "1.9.22"/' android/settings.gradle
-
-          # Also patch android/app/build.gradle to add kotlin-stdlib resolution force.
-          # This fixes "Module compiled with incompatible Kotlin metadata" error where
-          # kotlin-stdlib 1.9.0 metadata is incompatible with Kotlin plugin 1.7.x.
-          python3 -c "
-          import re
-          gradle = open('android/app/build.gradle').read()
-          if 'kotlin-stdlib.*1.9.22' not in gradle:
-              # Insert resolutionStrategy before the android { block or subprojects
-              patch = '''
-
-configurations.all {
-    resolutionStrategy {
-        force \"org.jetbrains.kotlin:kotlin-stdlib:1.9.22\"
-        force \"org.jetbrains.kotlin:kotlin-stdlib-common:1.9.22\"
-        force \"org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22\"
-        force \"org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22\"
-    }
-}
-
-'''
-              if 'android {' in gradle:
-                  gradle = gradle.replace('android {', patch + 'android {')
-              open('android/app/build.gradle', 'w').write(gradle)
-              print('Patched android/app/build.gradle with kotlin-stdlib resolutionStrategy')
-          else:
-              print('kotlin-stdlib resolutionStrategy already present')
-          "
-
           cd ..
 
       - name: Get Flutter dependencies
