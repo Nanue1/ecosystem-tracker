@@ -27,7 +27,7 @@ jobs:
           flutter-version: '3.22.0'
           channel: 'stable'
           cache: true
-          cache-key: 'flutter-${{ runner.os }}-${{ hashFiles("mobile/pubspec.lock") }}'
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('mobile/pubspec.lock') }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
