@@ -48,6 +48,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Generate Android native project
+        run: |
+          cd mobile
+          flutter create --platforms=android .
+          cd ..
+
       - name: Get dependencies
         working-directory: mobile
         run: flutter pub get

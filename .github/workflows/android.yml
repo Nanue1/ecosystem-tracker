@@ -44,6 +44,12 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
+      - name: Generate Android native project
+        run: |
+          cd mobile
+          flutter create --platforms=android .
+          cd ..
+
       - name: Get Flutter dependencies
         working-directory: mobile
         run: flutter pub get
