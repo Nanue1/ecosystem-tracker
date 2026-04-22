@@ -52,10 +52,8 @@ jobs:
         run: |
           cd mobile
           flutter create --platforms=android .
-          # Force Kotlin 1.9.x (some dependencies require it)
-          if ! grep -q "kotlin.version" android/gradle.properties 2>/dev/null; then
-            echo "kotlin.version=1.9.0" >> android/gradle.properties
-          fi
+          # Update Kotlin Gradle plugin version to 1.9.0 (some dependencies require it)
+          sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.0"/' android/build.gradle
           cd ..
 
       - name: Get dependencies
