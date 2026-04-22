@@ -48,8 +48,30 @@ jobs:
         run: |
           cd mobile
           flutter create --platforms=android .
-          # Override Kotlin plugin version in settings.gradle (Flutter 3.22 uses pluginManagement DSL)
-          sed -i 's/id("org.jetbrains.kotlin.android") version "[^"]*"/id("org.jetbrains.kotlin.android") version "1.9.0"/' android/settings.gradle
+
+          # Fix Kotlin plugin version to 1.9.22 in settings.gradle
+          sed -i 's/id("org.jetbrains.kotlin.android") version "[^"]*"/id("org.jetbrains.kotlin.android") version "1.9.22"/' android/settings.gradle
+
+          # Force ALL kotlin-stdlib artifacts to 1.9.22 to resolve version mismatch
+          # Error: "Module compiled with incompatible Kotlin metadata. Expected 1.7.1, got 1.9.0"
+          if ! grep -q 'kotlin-stdlib.*1.9.22' android/build.gradle; then
+            cat >> android/build.gradle << 'KOTLIN_BLOCK'
+
+subprojects {
+    afterEvaluate { project ->
+        project.configurations.all {
+            resolutionStrategy {
+                force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'
+                force 'org.jetbrains.kotlin:kotlin-stdlib-common:1.9.22'
+                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22'
+                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'
+            }
+        }
+    }
+}
+KOTLIN_BLOCK
+          fi
+
           cd ..
 
       - name: Get Flutter dependencies
